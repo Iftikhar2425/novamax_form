@@ -72,7 +72,7 @@ def process_invoice(data):
         raise FileNotFoundError("Original PDF template not found in 'uploads/' folder.")
 
     data["date"] = localtime(timezone.now()).strftime("%d-%m-%Y") 
-      
+    print(data)  
 
     doc = fitz.open(ORIGINAL_PDF)
     page = doc[0]

@@ -4,6 +4,14 @@ from decimal import Decimal, InvalidOperation
 from .models import Invoice, InvoiceItem
 from .pdf_utils import process_invoice
 from .utils import generate_invoice_number
+from django.shortcuts import get_object_or_404
+
+
+
+
+
+
+
 
 
 # --- Helper to safely convert decimals ---
@@ -95,3 +103,37 @@ def generate(request):
             f"<h2>Error generating invoice:</h2><pre>{e}</pre>",
             status=500
         )
+def generate_existing_invoice_pdf(request, invoice_id):
+    """
+    Generate PDF for an existing invoice by its ID
+    """
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+
+    # Prepare items for PDF
+    items = []
+    for item in invoice.items.all():
+        items.append({
+            "name": item.name,
+            "qty": item.qty,
+            "price": item.price,
+            "discount": item.discount,
+            "batch": item.batch,
+            "expiry": item.expiry,
+        })
+
+    # Call process_invoice with invoice data
+    pdf_path = process_invoice({
+        "invoice_no": invoice.invoice_no,
+        "date": invoice.date.strftime("%d/%m/%Y"),
+        "customer_name": invoice.customer_name,
+        "address": invoice.address,
+        "license_no": invoice.license_no,
+        "items": items,
+    })
+
+    return FileResponse(
+        open(pdf_path, "rb"),
+        as_attachment=True,
+        filename=f"{invoice.invoice_no}.pdf"
+    )
+
