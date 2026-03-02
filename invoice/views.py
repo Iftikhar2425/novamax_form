@@ -1,20 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import FileResponse, HttpResponse
 from decimal import Decimal, InvalidOperation
 from .models import Invoice, InvoiceItem
-from .pdf_utils import process_invoice
+from .pdf_utils import process_invoice_bytes  # we will return bytes instead of path
 from .utils import generate_invoice_number
-from django.shortcuts import get_object_or_404
 
-
-
-
-
-
-
-
-
-# --- Helper to safely convert decimals ---
+# Helper to safely convert decimals
 def safe_decimal(value, default=0):
     try:
         return Decimal(value)
@@ -33,13 +24,13 @@ def generate(request):
         return render(request, "invoices/index.html")
 
     try:
-        # --- Customer & Salesman Info ---
+        # Customer & Salesman info
         customer_name = request.POST.get("customer_name", "").strip()
         address = request.POST.get("address", "").strip()
         license_no = request.POST.get("license_no", "").strip()
         salesman = request.POST.get("salesman", "").strip() or "Unknown"
 
-        # --- Items ---
+        # Items
         names = request.POST.getlist("item_name[]")
         qtys = request.POST.getlist("qty[]")
         prices = request.POST.getlist("price[]")
@@ -66,34 +57,32 @@ def generate(request):
                 "expiry": expiries[i] if i < len(expiries) else "",
             })
 
-        # --- Save invoice ---
+        # Save invoice
         invoice_no = generate_invoice_number()
         invoice = Invoice.objects.create(
             customer_name=customer_name,
             address=address,
             license_no=license_no,
-            # salesman=salesman,
             total_amount=total,
             invoice_no=invoice_no
-            
         )
 
-        # --- Save invoice items ---
+        # Save invoice items
         for item in items:
             InvoiceItem.objects.create(invoice=invoice, **item)
 
-        # --- Generate PDF ---
-        pdf = process_invoice({
+        # --- Generate PDF bytes instead of file path ---
+        pdf_bytes = process_invoice_bytes({
             "invoice_no": invoice.invoice_no,
             "date": invoice.date.strftime("%d/%m/%Y"),
             "customer_name": invoice.customer_name,
             "address": invoice.address,
-            "license_no": invoice.license_no, 
+            "license_no": invoice.license_no,
             "items": items,
         })
 
         return FileResponse(
-            open(pdf, "rb"),
+            pdf_bytes,
             as_attachment=True,
             filename=f"{invoice.invoice_no}.pdf"
         )
@@ -103,6 +92,8 @@ def generate(request):
             f"<h2>Error generating invoice:</h2><pre>{e}</pre>",
             status=500
         )
+
+
 def generate_existing_invoice_pdf(request, invoice_id):
     """
     Generate PDF for an existing invoice by its ID
@@ -121,8 +112,7 @@ def generate_existing_invoice_pdf(request, invoice_id):
             "expiry": item.expiry,
         })
 
-    # Call process_invoice with invoice data
-    pdf_path = process_invoice({
+    pdf_bytes = process_invoice_bytes({
         "invoice_no": invoice.invoice_no,
         "date": invoice.date.strftime("%d/%m/%Y"),
         "customer_name": invoice.customer_name,
@@ -132,8 +122,7 @@ def generate_existing_invoice_pdf(request, invoice_id):
     })
 
     return FileResponse(
-        open(pdf_path, "rb"),
+        pdf_bytes,
         as_attachment=True,
         filename=f"{invoice.invoice_no}.pdf"
     )
-
