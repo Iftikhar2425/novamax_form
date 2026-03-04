@@ -10,8 +10,8 @@ BASE_DIR = settings.BASE_DIR
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 OUTPUT_FOLDER = os.path.join(BASE_DIR, "outputs")
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+# os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 ORIGINAL_PDF = os.path.join(UPLOAD_FOLDER, "original.pdf")
 
@@ -185,8 +185,7 @@ def process_invoice_bytes(data):
     write_in_rect(page, PAYABLE_RECT, f"{total_net:.2f}", fontsize=9)
 
     # Write PDF to BytesIO
-    pdf_bytes = io.BytesIO()
-    pdf_bytes.write(doc.write())
+    pdf_bytes = io.BytesIO(doc.write())
     pdf_bytes.seek(0)
     doc.close()
     return pdf_bytes

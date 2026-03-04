@@ -1,16 +1,14 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "invoice_proj/wsgi.py",
-        "use": "@vercel/python"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "invoice_proj/wsgi.py"
-      }
-    ]
-  }
-  
+  "builds": [
+    {
+      "src": "invoice_proj/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "invoice_proj/wsgi.py"
+    }
+  ]
+}
