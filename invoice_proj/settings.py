@@ -55,23 +55,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'invoice_proj.wsgi.application'
 
 # DATABASE
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": "django_invoice_db",
-            "USER": "postgres",
-            "PASSWORD": "1234",
-            "HOST": "localhost",
-            "PORT": "5432",
-        }
-    }
 
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL")
+    )
+}
 # Static files
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
