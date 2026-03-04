@@ -1,1 +1,6 @@
 .env
+__pycache__/
+*.pyc
+uploads/original.pdf
+outputs/
+shah/
